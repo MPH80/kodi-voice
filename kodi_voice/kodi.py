@@ -585,6 +585,20 @@ class Kodi:
         located = [(item['tvshowid'], item['label']) for item in ll]
 
     return located
+  
+   def FindProfile(self, heard_search):
+    log.info('Searching for profile "%s"', heard_search.encode("utf-8"))
+
+    located = []
+    profiles = self.GetProfiles()
+
+    if 'result' in profiles and 'profiles' in profiles['result']:
+      ll = self.matchHeard(heard_search, profiles['result']['profiles'])
+      if ll:
+        located = [(item['label']) for item in ll]
+
+    return located
+
 
   # There is no JSON-RPC method for VideoLibrary.GetArtists, so we need a way
   # to filter the library results here.
@@ -1527,6 +1541,25 @@ class Kodi:
       for d in data['result']['episodes']:
         answer.append({'title': d['title'], 'episodeid': d['episodeid'], 'show': d['showtitle'], 'label': d['label'], 'dateadded': datetime.datetime.strptime(d['dateadded'], "%Y-%m-%d %H:%M:%S")})
     return answer
+
+  # Profile commands
+  def GetAllProfiles(self):
+    data = self.GetProfiles()
+    answer = []
+    if 'profiles' in data['result']:
+      for d in data['result']['profiles']:
+        answer.append(d['label'])
+    return answer
+
+  def GetProfiles(self):
+    return self.SendCommand(RPCString("Profiles.GetProfiles"))
+
+  def SwitchProfile(self,profile):
+    return self.SendCommand(RPCString("Profiles.LoadProfile",{"profile": profile, "prompt": True}))
+
+  def GetCurrentProfile(self):
+    data = self.SendCommand(RPCString("Profiles.GetCurrentProfile"))
+    return data['result']['label']
 
 
   # System commands
